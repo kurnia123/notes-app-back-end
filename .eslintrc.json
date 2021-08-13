@@ -11,7 +11,11 @@
         "ecmaVersion": 12
     },
     "rules": {
-        "indent": ["error", "ignoredNodes"],
-        "no-console": "off"
+        "linebreak-style": 0,
+        "indent": ["error", 4],
+        "no-console": "off",
+        "no-underscore-dangle": 0,
+        "object-curly-newline": 0,
+        "camelcase": ["error", { "properties": "never", "ignoreDestructuring": true }]
     }
 }
