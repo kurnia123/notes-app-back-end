@@ -20,14 +20,18 @@ const AuthenticationsService = require('./services/postgres/AuthenticationServic
 const TokenManager = require('./tokenize/TokenManager');
 const AuthenticationsValidator = require('./validator/authentication');
 
+// collaborations
+const collaborations = require('./api/collaborations');
+const CollaborationsService = require('./services/postgres/CollaborationsService');
+const CollaborationsValidator = require('./validator/collaborations');
+
 const init = async () => {
-    const notesService = new NotesService();
+    const collaborationsService = new CollaborationsService();
+    const notesService = new NotesService(collaborationsService);
     const usersService = new UsersService();
     const authenticationsService = new AuthenticationsService();
 
     const server = Hapi.server({
-        // port: 5000,
-        // host: process.env.NODE_ENV !== 'production' ? 'localhost' : '0.0.0.0',
         port: process.env.PORT,
         host: process.env.HOST,
         routes: {
@@ -36,12 +40,15 @@ const init = async () => {
             },
         },
     });
+
+    // registrasi plugin eksternal
     await server.register([
         {
             plugin: Jwt,
         },
     ]);
 
+    // mendefinisikan strategy otentikasi jwt
     server.auth.strategy('notesapp_jwt', 'jwt', {
         keys: process.env.ACCESS_TOKEN_KEY,
         verify: {
@@ -82,9 +89,15 @@ const init = async () => {
                 validator: AuthenticationsValidator,
             },
         },
+        {
+            plugin: collaborations,
+            options: {
+                collaborationsService,
+                notesService,
+                validator: CollaborationsValidator,
+            },
+        },
     ]);
-
-    // server.route(routes);
 
     await server.start();
     console.log(`Server berjalan pada ${server.info.uri}`);
